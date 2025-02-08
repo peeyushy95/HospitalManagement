@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  hasura:
+    image: hasura/graphql-engine:v2.37.1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:secret@db:5432/mydatabase
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: secret
+
+  frontend:
+    build: ./frontend  # This tells Docker Compose to use the Dockerfile inside frontend/
+    ports:
+      - "3000:3000"
+    depends_on:
+      - hasura
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # to avoid overwriting node_modules in the container
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  dbdata:

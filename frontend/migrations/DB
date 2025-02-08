@@ -1,0 +1,37 @@
+
+
+-- Patients table
+CREATE TABLE patients (
+    id SERIAL PRIMARY KEY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    date_of_birth DATE,
+    gender TEXT,
+    medical_history TEXT
+);
+
+-- Prescriptions table
+CREATE TABLE prescriptions (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+    prescription_details TEXT,
+    date DATE
+);
+
+-- Clinic History table
+CREATE TABLE patient_history (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+    visit_date DATE,
+    diagnosis TEXT,
+    treatment TEXT
+);
+
+-- Payments table
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+    payment_date DATE,
+    amount DECIMAL(10, 2),
+    payment_method TEXT
+);
