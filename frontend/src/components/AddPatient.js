@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { Button, TextField, Grid, Box, Typography, Card, CardContent, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { ADD_PATIENT_MUTATION } from '../graphql/mutations';
+import DownloadIcon from '@mui/icons-material/Download';
 
 const AddPatient = () => {
   const [patient, setPatient] = useState({
-    name: '',
-    date_of_birth: '',
+    first_name: '',
+    last_name: '',
+    age: '',
     gender: '',
-    contact_number: '',
-    prescription: '',
   });
 
   const [addPatient] = useMutation(ADD_PATIENT_MUTATION);
@@ -72,11 +72,11 @@ const AddPatient = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Date of Birth"
+                label="Age"
                 variant="outlined"
-                type="date"
-                name="date_of_birth"
-                value={patient.date_of_birth}
+                type="number"
+                name="age"
+                value={patient.age}
                 onChange={handleChange}
                 required
                 InputLabelProps={{ shrink: true }}
@@ -123,7 +123,7 @@ const AddPatient = () => {
               />
             </Grid> */}
                         <Grid item xs={12} sm={6}>
-              <TextField
+              {/* <TextField
                 fullWidth
                 label="Medical History"
                 variant="outlined"
@@ -132,7 +132,7 @@ const AddPatient = () => {
                 onChange={handleChange}
                 required
                 sx={{ mb: 2 }}
-              />
+              /> */}
             </Grid>
             <Grid item xs={12}>
               <Box sx={{ textAlign: 'center' }}>

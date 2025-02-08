@@ -30,7 +30,7 @@ export const SEARCH_PATIENT_QUERY = gql`
       id
       first_name
       last_name
-      date_of_birth
+      age
       gender
       medical_history
     }

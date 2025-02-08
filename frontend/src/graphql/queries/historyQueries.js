@@ -6,14 +6,14 @@ export const GET_PATIENT_HISTORY_QUERY = gql`
     patients_by_pk(id: $patient_id)  {
         first_name
         last_name
-        date_of_birth
+        age
         gender
-        medical_history
+        # medical_history
         patient_histories{
           id
           visit_date
-          diagnosis
-          treatment
+          prescription_file
+         
       }
     }
   }

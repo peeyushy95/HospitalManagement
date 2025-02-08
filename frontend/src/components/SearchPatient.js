@@ -49,35 +49,35 @@ const SearchPatient = () => {
     navigate(`/patient-history/${patientId}`);
   };
 
-  const calculateAge = (dateOfBirth) => {
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
+  // const calculateAge = (dateOfBirth) => {
+  //   const today = new Date();
+  //   const birthDate = new Date(dateOfBirth);
     
-    let years = today.getFullYear() - birthDate.getFullYear();
-    let months = today.getMonth() - birthDate.getMonth();
+  //   let years = today.getFullYear() - birthDate.getFullYear();
+  //   let months = today.getMonth() - birthDate.getMonth();
   
-    // Adjust years and months if birth date hasn't occurred this month
-    if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
-      years--;
-      months += 12;
-    }
+  //   // Adjust years and months if birth date hasn't occurred this month
+  //   if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+  //     years--;
+  //     months += 12;
+  //   }
   
-    // Adjust for when today's date is less than birth date
-    if (today.getDate() < birthDate.getDate()) {
-      months--;
-    }
+  //   // Adjust for when today's date is less than birth date
+  //   if (today.getDate() < birthDate.getDate()) {
+  //     months--;
+  //   }
   
-    // Format the age string
-    let ageString = '';
-    if (years > 0) {
-      ageString += `${years}y `;
-    }
-    if (months > 0 || years === 0) {
-      ageString += `${months}m`;
-    }
+  //   // Format the age string
+  //   let ageString = '';
+  //   if (years > 0) {
+  //     ageString += `${years}y `;
+  //   }
+  //   if (months > 0 || years === 0) {
+  //     ageString += `${months}m`;
+  //   }
     
-    return ageString.trim();
-  };
+  //   return ageString.trim();
+  // };
   
 
   const handleSearch = (event) => {
@@ -133,8 +133,7 @@ const SearchPatient = () => {
                 >
                 <ListItemText
                   primary={`${patient.first_name} ${patient.last_name}`}
-                  secondary={`Age: ${calculateAge(patient.date_of_birth)} | Gender: ${patient.gender} 
-                  | Medical History: ${patient.medical_history}`}
+                  secondary={`Age: ${patient.age} | Gender: ${patient.gender} `}
                 />
               </StyledListItem>
             ))}
@@ -162,7 +161,7 @@ const SearchPatient = () => {
               >
                 <ListItemText
                   primary={`${patient.first_name} ${patient.last_name}`}
-                  secondary={`Age: ${calculateAge(patient.date_of_birth)} | Gender: ${patient.gender} | Medical History: ${patient.medical_history}`}
+                  secondary={`Age: ${patient.age}  | Gender: ${patient.gender}`}
                 />
               </StyledListItem>
             ))}

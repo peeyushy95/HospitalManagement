@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { TextField, Button, Grid, Box, Card, CardContent, Typography, InputLabel, Select, MenuItem,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, FormControl } from '@mui/material';
-import { GET_TOTAL_PAYMENTS_QUERY,GET_TOTAL_PAYMENTS_WITH_PATIENT_NAME_QUERY } from '../graphql/queries';
+import { GET_TOTAL_PAYMENTS_QUERY,GET_TOTAL_PAYMENTS_WITH_PATIENT_NAME_QUERY, GET_TOTAL_PAYMENT_WITH_PAYMENT_METHOD_QUERY } from '../graphql/queries';
 
 const TotalPayments = () => {
   const [filters, setFilters] = useState({
@@ -21,7 +21,7 @@ const TotalPayments = () => {
       start_date: filters.start_date,
       end_date: filters.end_date,
     },
-    skip: !filters.start_date || !filters.end_date || filters.patient_name // Skip if patient_name exists
+    skip: !filters.start_date || !filters.end_date || filters.patient_name || filters.payment_method // Skip if patient_name exists
   });
 
   // Query with patient name filter
@@ -35,12 +35,29 @@ const TotalPayments = () => {
       end_date: filters.end_date,
       patient_name: `${filters.patient_name}%`
     },
-    skip: !filters.start_date || !filters.end_date || !filters.patient_name // Skip if no patient_name
+    skip: !filters.start_date || !filters.end_date || !filters.patient_name || filters.payment_method // Skip if no patient_name
   });
 
-  const data = patientData || basicData;
-  const loading = basicLoading || patientLoading;
-  const error = basicError || patientError;
+  const { 
+    data: patientData1, 
+    loading: patientLoading1, 
+    error: patientError1 
+  } = useQuery(GET_TOTAL_PAYMENT_WITH_PAYMENT_METHOD_QUERY, {
+    variables: {
+      start_date: filters.start_date,
+      end_date: filters.end_date,
+      patient_name: `${filters.patient_name}%`,
+      payment_method: `${filters.payment_method}`
+    },
+    skip: !filters.start_date || !filters.end_date || !filters.patient_name || !filters.payment_method // Skip if no patient_name
+  });
+
+
+
+
+  const data = patientData || basicData || patientData1;
+  const loading = patientLoading || basicLoading || patientLoading1;
+  const error = patientError || basicError || patientError1;
 
 
   // Calculate total amount
@@ -124,11 +141,11 @@ const TotalPayments = () => {
           </Grid>
         </Grid>
 
-        <Box sx={{ textAlign: 'center', marginTop: 2 }}>
+        {/* <Box sx={{ textAlign: 'center', marginTop: 2 }}>
           <Button variant="contained" color="primary" onClick={handleSearch}>
             Search
           </Button>
-        </Box>
+        </Box> */}
 
         {loading && <Typography>Loading...</Typography>}
         {error && <Typography color="error">Error: {error.message}</Typography>}

@@ -6,6 +6,7 @@ CREATE TABLE patients (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     date_of_birth DATE,
+    age INTEGER NOT NULL,
     gender TEXT,
     medical_history TEXT
 );
@@ -24,7 +25,8 @@ CREATE TABLE patient_history (
     patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
     visit_date DATE,
     diagnosis TEXT,
-    treatment TEXT
+    treatment TEXT,
+    prescription_file TEXT
 );
 
 -- Payments table

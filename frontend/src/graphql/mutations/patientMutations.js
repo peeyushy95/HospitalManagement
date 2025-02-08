@@ -2,14 +2,13 @@ import { gql } from '@apollo/client';
 
 // Mutation to add a new patient
 export const ADD_PATIENT_MUTATION = gql`
-  mutation AddPatient($first_name: String!, $last_name: String!, $date_of_birth: date!, $gender: String!, $medical_history: String!) {
-    insert_patients_one(object: {first_name: $first_name, last_name: $last_name, date_of_birth: $date_of_birth, gender: $gender, medical_history: $medical_history}) {
+  mutation AddPatient($first_name: String!, $last_name: String!, $age: Int!, $gender: String!) {
+    insert_patients_one(object: {first_name: $first_name, last_name: $last_name, age: $age, gender: $gender}) {
       id
       first_name
       last_name
-      date_of_birth
+      age
       gender
-      medical_history
     }
   }
 `;

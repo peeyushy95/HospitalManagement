@@ -5,6 +5,8 @@ import {  Typography, Box, Card, CardContent, Alert, TextField, Button,
 import { GET_PATIENT_HISTORY_QUERY } from '../graphql/queries';
 import { styled, } from '@mui/material/styles';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import DownloadIcon from '@mui/icons-material/Download';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   margin: '10px 0',
@@ -73,17 +75,15 @@ const ADD_PAYMENT = gql`
 
 
 const ADD_VISIT = gql`
-  mutation AddVisit($patient_id: Int!, $visit_date: date!, $diagnosis: String!, $treatment: String!) {
+  mutation AddVisit($patient_id: Int!, $visit_date: date!, $prescription_file: String!) {
     insert_patient_history_one(object: {
       patient_id: $patient_id,
       visit_date: $visit_date,
-      diagnosis: $diagnosis,
-      treatment: $treatment
+      prescription_file: $prescription_file,
     }) {
       id
       visit_date
-      diagnosis
-      treatment
+      prescription_file
     }
   }
 `;
@@ -93,8 +93,11 @@ const AddVisitDialog = ({ open, onClose, onSubmit, title }) => {
   const [visitInfo, setVisitInfo] = useState({
     visit_date: new Date().toISOString().split('T')[0],
     diagnosis: '',
-    treatment: ''
+    treatment: '',
+    prescription_file: null
   });
+
+  const [selectedFileName, setSelectedFileName] = useState('');
 
   const handleVisitInfoChange = (event) => {
     setVisitInfo({
@@ -103,13 +106,38 @@ const AddVisitDialog = ({ open, onClose, onSubmit, title }) => {
     });
   };
 
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFileName(file.name);
+      // Convert file to base64
+      const base64File = await convertToBase64(file);
+      setVisitInfo({
+        ...visitInfo,
+        prescription_file: base64File
+      });
+    }
+  };
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSubmit = () => {
     onSubmit(visitInfo);
     setVisitInfo({
       visit_date: new Date().toISOString().split('T')[0],
       diagnosis: '',
-      treatment: ''
+      treatment: '',
+      prescription_file: null
     });
+
+    setSelectedFileName('');
   };
 
   return (
@@ -132,7 +160,31 @@ const AddVisitDialog = ({ open, onClose, onSubmit, title }) => {
             sx={{ mb: 2 }}
             InputLabelProps={{ shrink: true }}
           />
-          <TextField
+           <Box sx={{ mb: 2 }}>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              style={{ display: 'none' }}
+              id="prescription-file"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="prescription-file">
+              <Button
+                variant="outlined"
+                component="span"
+                fullWidth
+                startIcon={<CloudUploadIcon />}
+              >
+                Upload Prescription
+              </Button>
+            </label>
+            {selectedFileName && (
+              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                Selected file: {selectedFileName}
+              </Typography>
+            )}
+          </Box>
+          {/* <TextField
             fullWidth
             label="Diagnosis"
             name="diagnosis"
@@ -151,7 +203,7 @@ const AddVisitDialog = ({ open, onClose, onSubmit, title }) => {
             multiline
             rows={2}
             sx={{ mb: 2 }}
-          />
+          /> */}
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 3 }}>
@@ -344,8 +396,18 @@ const PatientHistory = () => {
     }
   };
 
+  const handleDownload = (base64File, fileName) => {
+    const link = document.createElement('a');
+    link.href = base64File;
+    link.download = fileName || 'prescription';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">Error: {error.message}</Typography>;
+
 
   if (!data?.patients_by_pk || !data.patients_by_pk.patient_histories?.length) {
     return (
@@ -511,14 +573,14 @@ const PatientHistory = () => {
             <strong>Name:</strong> {patient.first_name} {patient.last_name}
           </Typography>
           <Typography>
-            <strong>Date of Birth:</strong> {new Date(patient.date_of_birth).toLocaleDateString()}
+            <strong>Age:</strong> {patient.age}
           </Typography>
           <Typography>
             <strong>Gender:</strong> {patient.gender}
           </Typography>
-          <Typography>
+          {/* <Typography>
             <strong>Medical History:</strong> {patient.medical_history || 'No medical history available'}
-          </Typography>
+          </Typography> */}
         </CardContent>
       </StyledCard>
 
@@ -536,13 +598,24 @@ const PatientHistory = () => {
               Visit History
             </Typography>
             <ScrollableBox>
-            {patient.patient_histories.map((history, index) => (
-              <Box key={index} sx={{ mb: 2, pb: 2, borderBottom: index !== patient.patient_histories.length - 1 ? '1px solid #eee' : 'none' }}>
-                <Typography><strong>Date:</strong> {new Date(history.visit_date).toLocaleDateString()}</Typography>
-                <Typography><strong>Diagnosis:</strong> {history.diagnosis}</Typography>
-                <Typography><strong>Treatment:</strong> {history.treatment}</Typography>
-              </Box>
-            ))}
+              {patient.patient_histories.map((history, index) => (
+                <Box key={index} sx={{ mb: 2, pb: 2, borderBottom: index !== patient.patient_histories.length - 1 ? '1px solid #eee' : 'none' }}>
+                  <Typography><strong>Date:</strong> {new Date(history.visit_date).toLocaleDateString()}</Typography>
+                  {/* <Typography><strong>Diagnosis:</strong> {history.diagnosis}</Typography>
+                  <Typography><strong>Treatment:</strong> {history.treatment}</Typography> */}
+                  {history.prescription_file && (
+                    <Button
+                      size="small"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => handleDownload(history.prescription_file, `prescription_${history.visit_date}`)}
+                      sx={{ mt: 1 }}
+                    >
+                      Download Prescription
+                    </Button>
+                  )}
+                
+                </Box>
+              ))}
             </ScrollableBox>
           </CardContent>
         </StyledCard>
