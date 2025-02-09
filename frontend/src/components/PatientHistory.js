@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {  Typography, Box, Card, CardContent, Alert, TextField, Button,
-  Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel   } from '@mui/material';
+import {  Typography, Box, Card, CardContent, Alert, TextField, Button, 
+  Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel, IconButton   } from '@mui/material';
 import { GET_PATIENT_HISTORY_QUERY } from '../graphql/queries';
+import { DELETE_VISIT, ADD_PAYMENT, ADD_VISIT } from '../graphql/mutations';
 import { styled, } from '@mui/material/styles';
 import { useQuery, useMutation, gql } from '@apollo/client';
-import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import { CloudUpload as CloudUploadIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import DownloadIcon from '@mui/icons-material/Download';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -23,7 +24,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
 }));
 
 const ScrollableBox = styled(Box)(({ theme }) => ({
-  maxHeight: '70vh',
+  maxHeight: '300px',
   overflowY: 'auto',
   '&::-webkit-scrollbar': {
     width: '8px',
@@ -57,36 +58,30 @@ const HistoryItem = styled(Box)(({ theme }) => ({
   }
 }));
 
-const ADD_PAYMENT = gql`
-  mutation AddPayment($patient_id: Int!, $payment_date: date!, $amount: numeric!, $payment_method: String!) {
-    insert_payments_one(object: {
-      patient_id: $patient_id,
-      payment_date: $payment_date,
-      amount: $amount,
-      payment_method: $payment_method,
-    }) {
-      id
-      payment_date
-      amount
-      payment_method
-    }
-  }
-`;
 
 
-const ADD_VISIT = gql`
-  mutation AddVisit($patient_id: Int!, $visit_date: date!, $prescription_file: String!) {
-    insert_patient_history_one(object: {
-      patient_id: $patient_id,
-      visit_date: $visit_date,
-      prescription_file: $prescription_file,
-    }) {
-      id
-      visit_date
-      prescription_file
-    }
-  }
-`;
+const DeleteConfirmDialog = ({ open, onClose, onConfirm }) => {
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle sx={{ color: 'error.main' }}>Confirm Delete</DialogTitle>
+      <DialogContent>
+        <Typography>Are you sure you want to delete this visit record? This action cannot be undone.</Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button 
+          onClick={onConfirm} 
+          color="error" 
+          variant="contained"
+        >
+          Delete
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+
 
 
 const AddVisitDialog = ({ open, onClose, onSubmit, title }) => {
@@ -184,17 +179,19 @@ const AddVisitDialog = ({ open, onClose, onSubmit, title }) => {
               </Typography>
             )}
           </Box>
-          {/* <TextField
+          <TextField
             fullWidth
             label="Diagnosis"
             name="diagnosis"
             value={visitInfo.diagnosis}
             onChange={handleVisitInfoChange}
+            inputProps={{ maxLength: 50 }}  // Add this line
+            helperText={`${visitInfo.diagnosis.length}/50 characters`} 
             multiline
             rows={2}
             sx={{ mb: 2 }}
           />
-          <TextField
+          {/* <TextField
             fullWidth
             label="Treatment"
             name="treatment"
@@ -344,13 +341,40 @@ const PatientHistory = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDeleteId, setSelectedDeleteId] = useState(null);
+
 
   const { loading, error, data, refetch  } = useQuery(GET_PATIENT_HISTORY_QUERY, {
     variables: { patient_id: parseInt(patientId) },
     skip: !patientId
   });
 
+    // Add delete mutation
+  const [deleteVisit] = useMutation(DELETE_VISIT);
   const [addVisit] = useMutation(ADD_VISIT);
+
+
+    // Add delete handler
+  const handleDelete = async (id) => {
+    setSelectedDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteVisit({
+        variables: {
+          id: selectedDeleteId
+        }
+      });
+      setDeleteDialogOpen(false);
+      refetch(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting visit:', error);
+      // You might want to show an error message to the user here
+    }
+  };
 
   const handleAddVisit = async (visitInfo) => {
     try {
@@ -411,7 +435,11 @@ const PatientHistory = () => {
 
   if (!data?.patients_by_pk || !data.patients_by_pk.patient_histories?.length) {
     return (
-      <Box>
+      <Box sx={{ 
+        minHeight: '70vh',
+        padding: 3,
+        backgroundColor: '#f5f5f5b3'  // Optional: adds a subtle background color
+      }}>
         <Typography 
           variant="h4" 
           sx={{ 
@@ -496,7 +524,12 @@ const PatientHistory = () => {
   const patient = data.patients_by_pk;
 
   return (
-    <Box>
+    <Box
+    sx={{ 
+      padding: 3,
+      backgroundColor: '#f5f5f5b3'  // Optional: adds a subtle background color
+    }}
+    >
       <Typography 
         variant="h4" 
         sx={{ 
@@ -569,6 +602,11 @@ const PatientHistory = () => {
           >
             Patient Details
           </Typography>
+          <Box sx={{ 
+              display: 'flex', 
+              gap: 4,
+              alignItems: 'center'
+            }}>
           <Typography>
             <strong>Name:</strong> {patient.first_name} {patient.last_name}
           </Typography>
@@ -578,6 +616,7 @@ const PatientHistory = () => {
           <Typography>
             <strong>Gender:</strong> {patient.gender}
           </Typography>
+          </Box>
           {/* <Typography>
             <strong>Medical History:</strong> {patient.medical_history || 'No medical history available'}
           </Typography> */}
@@ -599,24 +638,58 @@ const PatientHistory = () => {
             </Typography>
             <ScrollableBox>
               {patient.patient_histories.map((history, index) => (
-                <Box key={index} sx={{ mb: 2, pb: 2, borderBottom: index !== patient.patient_histories.length - 1 ? '1px solid #eee' : 'none' }}>
-                  <Typography><strong>Date:</strong> {new Date(history.visit_date).toLocaleDateString()}</Typography>
-                  {/* <Typography><strong>Diagnosis:</strong> {history.diagnosis}</Typography>
-                  <Typography><strong>Treatment:</strong> {history.treatment}</Typography> */}
-                  {history.prescription_file && (
-                    <Button
+                <Box key={index} sx={{ mb: 2, pb: 2, position: 'relative', borderBottom: index !== patient.patient_histories.length - 1 ? '1px solid #eee' : 'none' }}>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        gap: 4,
+                        alignItems: 'center'
+                      }}>
+                      <Typography><strong>Date:</strong> {new Date(history.visit_date).toLocaleDateString()}</Typography>
+                      <Typography>
+                        <strong>Diagnosis:</strong> {history.diagnosis ? history.diagnosis.trim() : 'NA'}
+                      </Typography>
+                      </Box>
+                      {/* <Typography>
+                        <strong>Treatment:</strong> {history.treatment ? history.treatment.trim() : 'NA'}
+                      </Typography> */}
+                      <Typography>
+                        <strong>Prescription:</strong>{' '}
+                        {history.prescription_file ? (
+                          <Button
+                            size="small"
+                            startIcon={<DownloadIcon />}
+                            onClick={() => handleDownload(history.prescription_file, `prescription_${history.visit_date}`)}
+                            sx={{ mt: 1 }}
+                          >
+                            Download Prescription
+                          </Button>
+                        ) : 'NA'}
+                      </Typography>
+                    </Box> 
+                    <IconButton 
+                      onClick={() => handleDelete(history.id)}
+                      color="error"
                       size="small"
-                      startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(history.prescription_file, `prescription_${history.visit_date}`)}
-                      sx={{ mt: 1 }}
+                      sx={{ 
+                        '&:hover': {
+                          backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                        }
+                      }}
                     >
-                      Download Prescription
-                    </Button>
-                  )}
-                
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 </Box>
               ))}
             </ScrollableBox>
+            <DeleteConfirmDialog
+              open={deleteDialogOpen}
+              onClose={() => setDeleteDialogOpen(false)}
+              onConfirm={handleConfirmDelete}
+            />
           </CardContent>
         </StyledCard>
       )}

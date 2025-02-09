@@ -14,6 +14,22 @@ export const ADD_PAYMENT_MUTATION = gql`
   }
 `;
 
+export const ADD_PAYMENT = gql`
+  mutation AddPayment($patient_id: Int!, $payment_date: date!, $amount: numeric!, $payment_method: String!) {
+    insert_payments_one(object: {
+      patient_id: $patient_id,
+      payment_date: $payment_date,
+      amount: $amount,
+      payment_method: $payment_method,
+    }) {
+      id
+      payment_date
+      amount
+      payment_method
+    }
+  }
+`;
+
 // Mutation to update a payment
 export const UPDATE_PAYMENT_MUTATION = gql`
   mutation UpdatePayment($id: Int!, $amount: Float!, $payment_date: date!) {
@@ -30,6 +46,36 @@ export const DELETE_PAYMENT_MUTATION = gql`
   mutation DeletePayment($id: Int!) {
     delete_payments_by_pk(id: $id) {
       id
+    }
+  }
+`;
+
+
+export const UPDATE_PAYMENT_METHOD = gql`
+  mutation UpdatePaymentMethod($payment_id: Int!, $payment_method: String!) {
+    update_payments_by_pk(
+      pk_columns: { id: $payment_id }
+      _set: { payment_method: $payment_method }
+    ) {
+      id
+      payment_method
+      amount
+      payment_date
+      patient {
+        first_name
+        last_name
+      }
+    }
+  }
+`;
+
+export const DELETE_PAYMENT = gql`
+  mutation DeletePayment($payment_id: Int!) {
+    delete_payments_by_pk(id: $payment_id) {
+      id
+      payment_method
+      amount
+      payment_date
     }
   }
 `;

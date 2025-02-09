@@ -13,7 +13,8 @@ export const GET_PATIENT_HISTORY_QUERY = gql`
           id
           visit_date
           prescription_file
-         
+          diagnosis
+          treatment
       }
     }
   }

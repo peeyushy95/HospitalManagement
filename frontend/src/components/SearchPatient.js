@@ -21,7 +21,7 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
 }));
 
 const ScrollableBox = styled(Box)(({ theme }) => ({
-  maxHeight: '400px',  // You can adjust this value
+  maxHeight: '500px',  // You can adjust this value
   overflowY: 'auto',
   '&::-webkit-scrollbar': {
     width: '8px',
@@ -48,36 +48,6 @@ const SearchPatient = () => {
   const handlePatientClick = (patientId) => {
     navigate(`/patient-history/${patientId}`);
   };
-
-  // const calculateAge = (dateOfBirth) => {
-  //   const today = new Date();
-  //   const birthDate = new Date(dateOfBirth);
-    
-  //   let years = today.getFullYear() - birthDate.getFullYear();
-  //   let months = today.getMonth() - birthDate.getMonth();
-  
-  //   // Adjust years and months if birth date hasn't occurred this month
-  //   if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
-  //     years--;
-  //     months += 12;
-  //   }
-  
-  //   // Adjust for when today's date is less than birth date
-  //   if (today.getDate() < birthDate.getDate()) {
-  //     months--;
-  //   }
-  
-  //   // Format the age string
-  //   let ageString = '';
-  //   if (years > 0) {
-  //     ageString += `${years}y `;
-  //   }
-  //   if (months > 0 || years === 0) {
-  //     ageString += `${months}m`;
-  //   }
-    
-  //   return ageString.trim();
-  // };
   
 
   const handleSearch = (event) => {
@@ -101,6 +71,11 @@ const SearchPatient = () => {
   if (error) return <Typography>Error fetching patients.</Typography>;
 
   return (
+    <Box sx={{ 
+      minHeight: '70vh',
+      padding: 3,
+      backgroundColor: '#f5f5f5b3'  // Optional: adds a subtle background color
+    }}>
     <div>
       <Typography variant="h4"
       sx={{ 
@@ -170,6 +145,7 @@ const SearchPatient = () => {
         </div>
       )}
     </div>
+    </Box>
   );
 };
 

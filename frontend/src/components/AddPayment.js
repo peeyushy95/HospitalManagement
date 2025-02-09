@@ -28,7 +28,7 @@ const AddPayment = () => {
   };
 
   return (
-    <Card sx={{ marginBottom: 4 }}>
+    <Card sx={{ marginBottom: 4,  backgroundColor: '#f5f5f5b3' }}>
       <CardContent>
         <Typography variant="h6" component="h2" gutterBottom
         sx={{ 

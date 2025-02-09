@@ -30,8 +30,14 @@ const AddPatient = () => {
   };
 
   return (
-    <Card sx={{ marginBottom: 4 }}>
-      <CardContent>
+    <Card sx={{ 
+      marginBottom: 4,
+      minHeight: '70vh',
+      backgroundColor: '#f5f5f5b3', // Add this to make card take full viewport height
+      display: 'flex',    // Add flex display
+      flexDirection: 'column',
+     }}>
+      <CardContent sx={{ flexGrow: 1 }}>
         <Typography variant="h6" component="h2" gutterBottom
         sx={{ 
           color: 'rgb(194, 131, 54)',

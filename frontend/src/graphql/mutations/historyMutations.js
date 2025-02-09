@@ -11,6 +11,24 @@ export const ADD_HISTORY_MUTATION = gql`
   }
 `;
 
+
+export const ADD_VISIT = gql`
+  mutation AddVisit($patient_id: Int!, $visit_date: date!, $prescription_file: String, $diagnosis: String, $treatment: String) {
+    insert_patient_history_one(object: {
+      patient_id: $patient_id,
+      visit_date: $visit_date,
+      prescription_file: $prescription_file,
+      diagnosis: $diagnosis,
+      treatment: $treatment,
+    }) {
+      id
+      visit_date
+      prescription_file
+    }
+  }
+`;
+
+
 // Mutation to update a patient's history record
 export const UPDATE_HISTORY_MUTATION = gql`
   mutation UpdateHistory($id: Int!, $description: String!, $date: String!) {
@@ -25,6 +43,15 @@ export const UPDATE_HISTORY_MUTATION = gql`
 // Mutation to delete a patient's history record
 export const DELETE_HISTORY_MUTATION = gql`
   mutation DeleteHistory($id: Int!) {
+    delete_patient_history_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+// Add this mutation near your other mutations
+export const DELETE_VISIT = gql`
+  mutation DeleteVisit($id: Int!) {
     delete_patient_history_by_pk(id: $id) {
       id
     }

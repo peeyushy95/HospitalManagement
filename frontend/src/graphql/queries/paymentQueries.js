@@ -10,6 +10,8 @@ export const GET_PATIENT_PAYMENTS_QUERY = gql`
   }
 `;
 
+
+
 export const GET_TOTAL_PAYMENTS_QUERY = gql`
   query GetTotalPayments($start_date: date, $end_date: date) {
     payments(
